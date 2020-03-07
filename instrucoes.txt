@@ -1,0 +1,9 @@
+
+Prototype
+   Extende os objetos html, incluindo novos métodos e propriedades 
+   que podem ser utilizadas por toda aplicação
+
+dir(app.el.formPanelAddContact);
+   retorna o elemento html como 'objeto' do DOM
+   consegue visualizar o nome da classe que ele herda (HTMLFormElement)
+   isso facilita para fazer o Prototype do elemento   
