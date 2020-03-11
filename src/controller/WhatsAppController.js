@@ -4,7 +4,7 @@ class WhatsAppController
     constructor()
     {
 
-        console.log("WhatsAppController > OK");
+        console.log("*** executou constructor");
 
         // extende as classes existentes no javascript
         this.elementsPrototype();
@@ -20,6 +20,8 @@ class WhatsAppController
 
     elementsPrototype()
     {
+
+        console.log("*** executou prototype");
 
         // alterando a classe nativa 'Element'
 
@@ -152,6 +154,8 @@ class WhatsAppController
     loadElements()
     {
 
+        console.log("*** executou loadElements");
+
         // no array 'el' teremos a referência
         // para todos os elementos da tela que tem 'id' definido no html
         this.el = {};
@@ -165,15 +169,20 @@ class WhatsAppController
             this.el[Format.getCamelCase(element.id)] = element;
         });
 
+        console.log(this.el);        
+
     }
 
     initEvents()
     {
 
+        console.log("*** executou initEvents");
+
         // clique no botão 'myPhoto'
         // utilizando o método 'on' definido em prototype
         this.el.myPhoto.on('click', e=>
         {
+            console.log("*** clique no botão myPhoto");
             this.closeAllLeftPanel();
             this.el.panelEditProfile.show();            
             // aguarda 0,3 segundos para adicionar a classe 'open', para que o efeito deslizante aconteça
@@ -187,6 +196,7 @@ class WhatsAppController
         // utilizando o método 'on' definido em prototype
         this.el.btnNewContact.on('click', e=>
         {
+            console.log("*** clique no botão newContact");
             // adcionando esta a classe 'open' ao elemento, o mesmo é exibido
             this.closeAllLeftPanel();
             this.el.panelAddContact.show();
@@ -201,6 +211,7 @@ class WhatsAppController
         // evento para fechar o 'panel' profile
         this.el.btnClosePanelEditProfile.on('click', e=>
         {
+            console.log("*** fechou o painel profile");
             // removendo a classe 'open' do elemento, o mesmo é ocultado
             this.el.panelEditProfile.removeClass('open');
         });      
@@ -208,13 +219,16 @@ class WhatsAppController
         // evento para fechar o 'panel' new contact
         this.el.btnClosePanelAddContact.on('click', e=>
         {
+            console.log("*** fechou o painel newContact");
             // removendo a classe 'open' do elemento, o mesmo é ocultado
             this.el.panelAddContact.removeClass('open');
         });           
 
-        // evento botão para definir a foto
+        // evento botão para definir a foto do perfil
         this.el.photoContainerEditProfile.on('click', e=>
         {
+
+            console.log('*** clicou no botão para definir a foto do perfil');            
 
             // simula o clique no input para que
             // a tela para seleção de arquivos seja exibida
@@ -241,19 +255,227 @@ class WhatsAppController
             // do nome do usuário no perfil
             this.el.btnSavePanelEditProfile.on('click', e=>
             {
-                console.log('gravar o texto digitado:' + this.el.inputNamePanelEditProfile.innerHTML);
+                console.log('*** gravar o texto digitado:' + this.el.inputNamePanelEditProfile.innerHTML);
             });
 
             // clique no botão para adicionar um novo contato
             // neste caso temos um formulário e podemos utilizar o 'formdata'
             this.el.formPanelAddContact.on('submit', e=>
             {
+                console.log('*** clicou no botão adicionar um novo contato');            
                 e.preventDefault();
                 let formData = new FormData(this.el.formPanelAddContact);
-
             });
 
-        });            
+        });    
+        
+        // percorre a lista de 'contatos'
+        // que fica no painel esquerdo da tela
+        // pesquisa todos os elementos que tenham a classe 'contact-item'        
+        this.el.contactsMessagesList.querySelectorAll('.contact-item').forEach( item =>
+        {
+            // define o evento 'click' em cada um dos itens da lista
+            item.on('click', e=>
+            {
+                this.el.home.hide();
+                this.el.main.css({display: 'flex'});
+            });
+        }); 
+
+        closeMenuAttach(e)
+        {
+
+            console.log('*** ocultou o menu do botão anexar');
+
+            // ao clicar em qualquer parte da tela, irá ocultar o menu
+            console.log('ocultou o menu');
+            // remove este evento do clique da tela, para que não seja mais executado
+            document.removeEventListener('click', this.closeMenuAttach);
+            // remove a classe 'open' do menu, para que seja ocultado
+            this.el.menuAttach.removeClass('open');
+
+        }
+
+        // define o evento para o botão de anexar
+        // é o botão com o ícone do 'clips' que fica dentro da conversa
+        this.el.btnAttach.on('click', e =>
+        {
+
+            console.log('*** clicou no botão anexar');            
+
+            // informa que este evento não deve ser propagado
+            // para as classes 'pai' do objeto que foi clicado
+            // para que o evento seja executado apenas uma vez
+            e.stopPropagation();
+
+            // define a classe 'open' para abrir o menu com as opções
+            this.el.menuAttach.addClass('open');
+
+            // configura o evento de clique em qualquer item
+            // da tela, para que o menu seja ocultado
+            // este comando 'bind(this)' indica que deve chamar
+            // a função 'closeMenuAttach', mas dentro desta função, deve continuar
+            // com o escopo 'this', que é a classe Controller. Se não ficar isso,
+            // o this, dentro da função passa a ser 'Document'
+            document.addEventListener('click', this.closeMenuAttach.bind(this));
+
+        });
+
+        // botão que aparece no menu 'btnAttach'
+        // evento para enviar foto
+        this.el.btnAttachPhoto.on('click', e =>
+        {
+            console.log('*** clicou em attach photo');
+            this.el.inputPhoto.click();
+        });        
+
+        this.el.inputPhoto.on('change', e=>
+        {
+            // mostra os arquivos do inputPhoto
+            console.log('arquivos selecionados no inputPhoto', this.el.inputPhoto.files);
+
+            // 'inputPhoto.files' não é um array, é uma coleção
+            // sendo assim, não tem 'forEach'
+            // então, temos que utilizar o spread para transformar esta coleção em array
+            // para conseguir fazer o foreach
+            [...this.el.inputPhoto.files].forEach(file =>
+            {
+               // percorrendo a lista de arquivos selecionados
+               console.log('percorrendo os arquivos selecionados', file); 
+            });
+
+        });
+
+        // botão que aparece no menu 'btnAttach'
+        // evento para exibir a câmera
+        this.el.btnAttachCamera.on('click', e =>
+        {
+            console.log('*** clicou em attach camera');
+            // oculta todos os paineis que estejam abertos
+            closeAllMainPanel();
+            // exibe o painel da câmera
+            this.el.panelCamera.addClass('open');
+            // altera o tamanho do painel (altura)
+            this.el.panelCamera.css({'height':'cal(100% - 120px)'});
+        });    
+        
+        // botão que fecha o painel exibido para tirar foto (camera)
+        this.el.btnClosePanelCamera.on('click', e=>
+        {
+            console.log('*** clicou em fechar attach camera');
+            // oculta todos os painéis
+            this.closeAllMainPanel();
+            // exibe o painel de mensagens
+            this.el.panelMessagesContainer.show();
+        });
+
+        // botão para chamar a câmera e tirar a foto
+        this.el.btnTakePicture.on('click', e =>
+        {
+            console.log('*** clicou no botão para tirar foto');
+
+        });  
+
+        // botão para enviar o documento selecionado
+        this.el.btnSendDocument.on('click', e =>
+        {
+            console.log('*** clicou no botão para enviar documento');
+        });
+        
+        // botão que aparece no menu 'btnAttach'
+        // evento para enviar documento
+        this.el.btnAttachDocument.on('click', e =>
+        {
+            console.log('*** clicou em attach document');
+            // oculta o painel de mensagens
+            this.closeAllMainPanel();
+            // exibe o painel do documento
+            this.el.panelDocumentPreview.addClass('open');
+            // altera o tamanho do painel (altura)
+            this.el.panelDocumentPreview.css({'height':'cal(100% - 120px)'});
+
+        });        
+        
+        // botão que fecha o painel exibido para anexar documentos
+        this.el.btnClosePanelDocumentPreview.on('click', e=>
+        {
+            console.log('*** clicou em fechar attach document');
+            // oculta todos os painéis
+            this.closeAllMainPanel();
+            // exibe o painel de mensagens
+            this.el.panelMessagesContainer.show();
+        });        
+
+        // botão que aparece no menu 'btnAttach'
+        // evento para enviar contato
+        this.el.btnAttachContact.on('click', e =>
+        {
+            console.log('*** clicou em attach contact');
+            // exibe a janela modal com a lista de contatos
+            this.el.modalContacts.show();
+        });           
+
+        // botão para fechar o modal 'contacts'
+        this.el.btnCloseModalContacts.on('click', e=>
+        {
+            // oculta a janela modal
+            this.el.modalContacts.hide();
+        });
+
+        // botão de microphone, que inicia a gravação do audio
+        this.el.btnSendMicrophone.on('click', e =>
+        {
+            // exibe o painel que demonstra a gravação
+            this.el.recordMicrophone.show();
+            // ocultar os botões
+            this.el.btnSendMicrophone.hide();
+            // inicia a contagem do tempo de gravação
+            this.startRecordMicrophoneTime();
+        });
+
+        this.el.btnCancelMicrophone.on('click', e=>
+        {
+            this.closeRecordMicrophone();
+        });
+
+        this.el.btnFinishMicrophone.on('click', e=>
+        {
+            this.closeRecordMicrophone();
+
+        });        
+
+    }
+
+    closeRecordMicrophone()
+    {
+        // oculta o botão do microfone        
+        this.el.btnSendMicrophone.hide();        
+        // oculta o painel que grava
+        this.el.recordMicrophone.hide();        
+        // fechou a gravação, então para a contagem de tempo
+        clearInterval(this._recordMicrophoneInterval);
+    }
+
+    startRecordMicrophoneTime()
+    {
+
+        // pega a hora do início da gravação do áudio
+        let start = Date.now();
+
+        // cria o processo que é executado a cada 100 milisegundos
+        // para atualizar o timer, exibindo o tempo decorrido
+        this._recordMicrophoneInterval = setInterval(() => 
+        {            
+            this.el.recordMicrophoneTimer.innerHTML = (Date.now() - start);
+
+        }, 100);
+    }
+
+    closeAllMainPanel()
+    {
+        this.el.panelMessagesContainer.hide();        
+        this.el.panelDocumentPreview.removeClass('open');        
+        this.el.panelCamera.removeClass('open');        
 
     }
 
