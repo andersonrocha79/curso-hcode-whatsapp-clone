@@ -442,7 +442,74 @@ class WhatsAppController
         {
             this.closeRecordMicrophone();
 
-        });        
+        });     
+        
+        // se teclar enter no campo, sem teclar 'control'
+        // faz o envio da mensagem
+        this.el.inputText.on('keypress', e =>
+        {
+
+            // o evento keypress ocorre logo que a tecla é pressionada
+            // o evento keyup ocorre quando para de pressionar a tecla
+            if (e.key === 'Enter' && !e.ctrlKey)
+            {
+                // cancela o comportamento padrão, parando os eventos seguintes
+                e.preventDefault();
+                // executa o evento de clique do botão de 'enviar mensagem'
+                this.el.btnSend.click();
+            }
+
+        });
+
+        // quando começar a digitar no campo de 'mensagem'
+        // esconder o placeHoder, que é a dica do campo,
+        // se tiver vazio, mostra o placeHolder
+        this.el.inputText.on('keyup', e=>
+        {
+            if (this.el.inputText.innerHTML.length)
+            {
+                this.el.inputPlaceholder.hide();
+                this.el.btnSendMicrophone.hide();
+                this.el.btnSend.show();
+            }
+            else
+            {
+                this.el.inputPlaceholder.show();
+                this.el.btnSendMicrophone.show();
+                this.el.btnSend.hide();
+            }
+        });
+
+        // clique no botão de enviar mensagem 
+        this.el.btnSend.on('click', e=>
+        {
+            console.log('*** clicou em btnSend - texto: ', this.el.inputText.innerHTML); 
+
+        });
+
+        // clique no botão para aparecer os emojis
+        this.el.btnEmojis.on('click', e =>
+        {
+           
+            // adiciona a classe 'open' ao containter que tem a lista de emojis
+            // para que o panel com as opções seja exibido
+            // o 'toggle' inclui ou remove a classe 'open'
+            this.el.panelEmojis.toggleClass('open');    
+            
+        });
+
+        // percorre todos os itens do 'panelEmojis'
+        // que tenham a classe '.emojik', que são os ícones disponíveis
+        this.el.panelEmojis.querySelectorAll('.emojik').forEach(emoji =>
+        {
+
+            // inclui o evento 'clique' em cada um dos emojis disponíveis na lista
+            emoji.on('click', e=>
+            {
+                console.log(emoji.dataset.unicode);
+            });
+
+        });
 
     }
 
@@ -466,7 +533,7 @@ class WhatsAppController
         // para atualizar o timer, exibindo o tempo decorrido
         this._recordMicrophoneInterval = setInterval(() => 
         {            
-            this.el.recordMicrophoneTimer.innerHTML = (Date.now() - start);
+            this.el.recordMicrophoneTimer.innerHTML = Format.toTime((Date.now() - start));
 
         }, 100);
     }
