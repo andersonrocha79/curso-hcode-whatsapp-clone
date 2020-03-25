@@ -7,3 +7,9 @@ dir(app.el.formPanelAddContact);
    retorna o elemento html como 'objeto' do DOM
    consegue visualizar o nome da classe que ele herda (HTMLFormElement)
    isso facilita para fazer o Prototype do elemento   
+
+O projeto estava rodando localmente, acessando o arquivo index.html diretamente
+Na aula 122 executamos os comandos abaixo
+npm init                                        para iniciar o projeto node na pasta
+npm install webpack@3.1.0 --save                instala o webpack na versao 3.1.0 e salva como dependencia do projeto     
+npm install webpack-dev-server@2.5.1 --save     instala o webpack server versao 2.5.1 e salva como dependencia do projeto

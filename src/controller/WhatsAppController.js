@@ -282,20 +282,6 @@ class WhatsAppController
             });
         }); 
 
-        closeMenuAttach(e)
-        {
-
-            console.log('*** ocultou o menu do botão anexar');
-
-            // ao clicar em qualquer parte da tela, irá ocultar o menu
-            console.log('ocultou o menu');
-            // remove este evento do clique da tela, para que não seja mais executado
-            document.removeEventListener('click', this.closeMenuAttach);
-            // remove a classe 'open' do menu, para que seja ocultado
-            this.el.menuAttach.removeClass('open');
-
-        }
-
         // define o evento para o botão de anexar
         // é o botão com o ícone do 'clips' que fica dentro da conversa
         this.el.btnAttach.on('click', e =>
@@ -352,11 +338,13 @@ class WhatsAppController
         {
             console.log('*** clicou em attach camera');
             // oculta todos os paineis que estejam abertos
-            closeAllMainPanel();
+            this.closeAllMainPanel();
             // exibe o painel da câmera
             this.el.panelCamera.addClass('open');
             // altera o tamanho do painel (altura)
             this.el.panelCamera.css({'height':'cal(100% - 120px)'});
+            // cria o objeto que controla a camera, passando como parametro em qual local o video sera exibido
+            this._camera = new CameraController(this.el.videoCamera);
         });    
         
         // botão que fecha o painel exibido para tirar foto (camera)
@@ -506,11 +494,76 @@ class WhatsAppController
             // inclui o evento 'clique' em cada um dos emojis disponíveis na lista
             emoji.on('click', e=>
             {
+
                 console.log(emoji.dataset.unicode);
+
+                // clona o emoji clicado, para que possa ser incluido na mensagem
+                let img = this.el.imgEmojiDefault.cloneNode();
+
+                // clona todas as propriedades do elemento que foi clicado
+                img.style.cssText   = emoji.style.cssText;
+                img.dataset.unicode = emoji.dataset.unicode;
+                img.alt             = emoji.dataset.unicode;
+
+                // lista todas as classes que temos em emoji
+                emoji.classList.forEach(name => 
+                {
+                    // adiciona a classe na cópia do emoji
+                    img.classList.add(name);                    
+                });
+
+                // após criar uma cópia do emoji clicado e definir
+                // todas as propriedades conforme o emoji clicado
+                // inclui no inputText
+                this.el.inputText.appendChild(img);
+
+                let cursor = window.getSelection();
+
+                // ao clicar no emoji, verifica se o cursor está dentro do input
+                // pode estar em outro ponto da página ou até mesmo fora da página
+                if (!cursor.focusNode || !cursor.focusNode.id == 'input-text')
+                {
+                    // se não tiver focado, seta o foco no input tex
+                    this.el.inputText.focus();   
+                    // após setar o foco, busca a posicao atual do cursor dentro do inputText
+                    cursor = window.getSelection();
+                }
+
+                // cria o range para saber onde esta o cursor dentro do inputText
+                let range = document.createRange();
+                
+                // pega a posicão inicial do cursor dentro do inputText
+                range = cursor.getRangeAt(0);
+
+                // exclui o texto da seleção para incluir o emoji no lugar
+                range.deleteContents();
+
+                // inclui a imagem dentro do inputText, na posição atual
+                let frag = document.createDocumentFragment();
+                frag.appendChild(img);
+                range.insertNode(frag);
+                // após a inclusão, posiciona o cursor após o emoji
+                range.setStartAfter(img);
+
+                // executa o evento do inputText
+                // para que simule a digitacao de um texto e o placeholder seja ocultado
+                this.el.inputText.dispatchEvent(new Event('keyup'));
+
             });
 
         });
 
+    }
+
+    closeMenuAttach(e)
+    {
+        console.log('*** ocultou o menu do botão anexar');
+        // ao clicar em qualquer parte da tela, irá ocultar o menu
+        console.log('ocultou o menu');
+        // remove este evento do clique da tela, para que não seja mais executado
+        document.removeEventListener('click', this.closeMenuAttach);
+        // remove a classe 'open' do menu, para que seja ocultado
+        this.el.menuAttach.removeClass('open');
     }
 
     closeRecordMicrophone()
@@ -543,7 +596,6 @@ class WhatsAppController
         this.el.panelMessagesContainer.hide();        
         this.el.panelDocumentPreview.removeClass('open');        
         this.el.panelCamera.removeClass('open');        
-
     }
 
     closeAllLeftPanel()
