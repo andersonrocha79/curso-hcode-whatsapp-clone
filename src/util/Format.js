@@ -1,4 +1,5 @@
-class Format
+
+export default class Format
 {
 
     static getCamelCase(text)

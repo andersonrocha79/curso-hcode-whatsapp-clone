@@ -13,3 +13,24 @@ Na aula 122 executamos os comandos abaixo
 npm init                                        para iniciar o projeto node na pasta
 npm install webpack@3.1.0 --save                instala o webpack na versao 3.1.0 e salva como dependencia do projeto     
 npm install webpack-dev-server@2.5.1 --save     instala o webpack server versao 2.5.1 e salva como dependencia do projeto
+
+O webpack faz o bundle da aplicação que roda no nodeJS
+Foi criado o arquivo de configuração do webpack (webpack.config.js)
+Neste arquivo vamos definir o arquivo JS que tem a chamada para todos os arquivos JS da aplicação
+Vamos também definir o arquivo de saída, que será gerado para publicação da aplicação JS
+Na página index.html incluimos a chamada para o arquivo bundle.js que será gerado pelo webpack
+
+Incluimos no package.json os scripts para execução do projeto utilizando o node e o webpack
+"build": "webpack --config webpack.config.js"
+"start": "webpack-dev-server"
+
+Para executar os scripts, acessar a pasta da aplicação e executar
+npm run start 
+npm run build
+
+Ao executar o script start por exemplo, iremos executar o webpack-dev-server, que inicia um servidor apontando para a pasta da aplicação
+   Project is running at http://localhost:8080/
+   webpack output is served from /dist
+   Hash: b5e302020e33d418c704
+   Version: webpack 3.1.0
+

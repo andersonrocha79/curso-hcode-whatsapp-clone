@@ -1,4 +1,8 @@
-class WhatsAppController
+import Format                    from './../util/Format'; 
+import CameraController          from './CameraController'; 
+import DocumentPreviewController from './DocumentPreviewController'; 
+
+export default class WhatsAppController
 {
 
     constructor()
@@ -355,14 +359,67 @@ class WhatsAppController
             this.closeAllMainPanel();
             // exibe o painel de mensagens
             this.el.panelMessagesContainer.show();
+            // executa o comando que para a camera
+            this._camera.stop();
         });
 
         // botão para chamar a câmera e tirar a foto
         this.el.btnTakePicture.on('click', e =>
         {
+
             console.log('*** clicou no botão para tirar foto');
+            
+            // tira a foto e armazena em dataUrl
+            let dataUrl = this._camera.takePicture();
+
+            // exibe o conteúdo da imagem capturada na camera
+            this.el.pictureCamera.src = dataUrl;
+            this.el.pictureCamera.show();
+            
+            // oculta o video que esta sendo executado pela camera
+            this.el.videoCamera.hide();
+
+            // mostra o botão para tirar uma nova foto
+            this.el.btnReshootPanelCamera.show();
+
+            // após tirar a foto, oculta o botão que tira a foto
+            this.el.containerTakePicture.hide();
+
+            // mostra o botão que envia a foto
+            this.el.containerSendPicture.show();
 
         });  
+
+        // botãoq que envia a foto que foi tirada pelo usuario
+        this.el.btnReshootPanelCamera.on('click', e =>
+        {
+
+            console.log('*** clicou no botão para reiniciar a camera e tirar outra foto');
+
+            // oculta a imagem que tem a foto que foi tirada anteriormente
+            this.el.pictureCamera.hide();
+            
+            // mostra o video novamente para tirar uma nova foto
+            this.el.videoCamera.show();
+
+            // oculta o botão para tirar uma nova foto
+            this.el.btnReshootPanelCamera.hide();
+
+            // mostra o botão novamente que tira a foto
+            this.el.containerTakePicture.show();
+
+            // oculta o botão que envia a foto tirada
+            this.el.containerSendPicture.hide();            
+
+        });
+
+        // botão que envia a foto tirada para o servidor
+        this.el.btnSendPicture.on('click', e =>
+        {
+
+            console.log('*** clicou no botão para enviar a foto tirada para o servidor');
+
+        });
 
         // botão para enviar o documento selecionado
         this.el.btnSendDocument.on('click', e =>
@@ -381,8 +438,84 @@ class WhatsAppController
             this.el.panelDocumentPreview.addClass('open');
             // altera o tamanho do painel (altura)
             this.el.panelDocumentPreview.css({'height':'cal(100% - 120px)'});
+            // simula o click no botão para selecionar arquivos
+            this.el.inputDocument.click();
+        });  
+        
+        this.el.inputDocument.on('change', e=> 
+        {
+            // verifica se tem arquivo selecionado na lista
+            if (this.el.inputDocument.files.length)
+            {
 
-        });        
+                // armazena a referencia para o caminho selecionado
+                let file = this.el.inputDocument.files[0];
+                console.log('arquivo selecionado:', file);
+
+                // cria o objeto que retorna o preview do arquivo selecionado
+                this._documentPreviewController = new DocumentPreviewController(file);
+
+                // executa a função que retorna o preview, e aguarda o retorno da função
+                this._documentPreviewController.getPreviewData().then(result =>
+                {
+                    console.log('preview OK', data);
+                    // mostra a imagem
+                    this.el.imgPanelDocumentPreview.src = result.src;
+                    // mostra o nome do arquivo
+                    this.el.infoPanelDocumentPreview.innerHTML = result.info;
+                    // exibe o painel para que a imagem possa ser exibida                    
+                    this.el.imagePanelDocumentPreview.show();
+                    // oculta o panel de seleção do arquivo
+                    this.el.filePanelDocumentPreview.hide();
+
+                    
+                }).catch(err =>
+                {
+
+                    // arquivo não pode ter preview
+                    switch (file.type)
+                    {
+
+                        // word
+                        case 'application/vnd.msword':
+                        case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-doc';
+                            break;
+
+                        // excel
+                        case 'application/vnd.ms-excel':
+                        case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-xls';
+                            break;
+
+                        // power point
+                        case 'application/vnd.ms-powerpoint':
+                        case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-ppt';
+                            break;
+
+                        // outros
+                        default:
+                            // muda a classe do elemento para que exiba o ícone
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-generic';
+                            break;
+
+                    }
+
+                    // exibe o nome do arquivo
+                    this.el.filenamePanelDocumentPreview.innerHTML = file.name;
+
+                    // esconde o preview da imagem
+                    this.el.imagePanelDocumentPreview.hide();
+
+                    // exibe o panel com o icone do arquivo selecionado
+                    this.el.filePanelDocumentPreview.show();
+
+                });
+
+            }
+
+        });
         
         // botão que fecha o painel exibido para anexar documentos
         this.el.btnClosePanelDocumentPreview.on('click', e=>

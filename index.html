@@ -1330,13 +1330,28 @@
             </div>
         </div>
     </div>
+
     <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="img-emoji-default"/>
 
+    <!-- 
 
-    <script src="src/util/Format.js"></script>
-    <script src="src/controller/CameraController.js"></script>    
-    <script src="src/controller/WhatsAppController.js"></script>
-    <script src="src/app.js"></script>
+        após inclusão do webpack, vamos fazer referência a apenas um arquivo,
+        que é o arquivo bundle da aplicação, não sendo mais necessário
+        incluir arquivo por arquivo na página html
+
+        configuração do arquivo 'bundle' em webpack.config.js
+
+        <script src="src/util/Format.js"></script>
+        <script src="src/controller/CameraController.js"></script>    
+        <script src="src/controller/WhatsAppController.js"></script>
+        <script src="src/app.js"></script>
+
+        tivemos que alterar a classe WhatsAppController, iniciando com exports
+        e no arquivo app.js tivemos que fazer a importação dos arquivos utilizados na aplicação como 'módulos'
+
+    -->   
+
+    <script src="dist/bundle.js"></script>
 
 </body>
 
