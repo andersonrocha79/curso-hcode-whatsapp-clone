@@ -1349,9 +1349,15 @@
         tivemos que alterar a classe WhatsAppController, iniciando com exports
         e no arquivo app.js tivemos que fazer a importação dos arquivos utilizados na aplicação como 'módulos'
 
-    -->   
+        após inclusão do pdf.js na aplicação, os caminhos foram alterados no webpack.config.js
+        agora temos 2 arquivos de entrada e dois de saída na aplicação
+        comando anterior:   <script src="dist/bundle.js"></script>
 
-    <script src="dist/bundle.js"></script>
+    -->   
+    
+    <script src="dist/pdf.worker.bundle.js"></script>
+    <script src="dist/app.bundle.js"></script>
+    
 
 </body>
 

@@ -1,5 +1,6 @@
 import Format                    from './../util/Format'; 
 import CameraController          from './CameraController'; 
+import MicrophoneController      from './MicrophoneController'; 
 import DocumentPreviewController from './DocumentPreviewController'; 
 
 export default class WhatsAppController
@@ -442,15 +443,21 @@ export default class WhatsAppController
             this.el.inputDocument.click();
         });  
         
-        this.el.inputDocument.on('change', e=> 
+        this.el.inputDocument.on('change', e=>  
         {
+
+            console.log('*** arquivo adicionado');
+
             // verifica se tem arquivo selecionado na lista
             if (this.el.inputDocument.files.length)
             {
 
+                // diminui a altura do panel, e exibe só depois que o arquivo estiver carregado, para evitar bug
+                //this.el.panelDocumentPreview.css({'height':'1%'});
+
                 // armazena a referencia para o caminho selecionado
                 let file = this.el.inputDocument.files[0];
-                console.log('arquivo selecionado:', file);
+                console.log('*** arquivo selecionado:', file);
 
                 // cria o objeto que retorna o preview do arquivo selecionado
                 this._documentPreviewController = new DocumentPreviewController(file);
@@ -458,19 +465,25 @@ export default class WhatsAppController
                 // executa a função que retorna o preview, e aguarda o retorno da função
                 this._documentPreviewController.getPreviewData().then(result =>
                 {
-                    console.log('preview OK', data);
+                    console.log('*** preview OK', result);
                     // mostra a imagem
-                    this.el.imgPanelDocumentPreview.src = result.src;
+                    this.el.imgPanelDocumentPreview.src        = result.src;
                     // mostra o nome do arquivo
                     this.el.infoPanelDocumentPreview.innerHTML = result.info;
                     // exibe o painel para que a imagem possa ser exibida                    
                     this.el.imagePanelDocumentPreview.show();
                     // oculta o panel de seleção do arquivo
                     this.el.filePanelDocumentPreview.hide();
-
+                    // aumenta o panel novamente para exibir a imagem
+                    //this.el.panelDocumentPreview.css({'height':'cal(100% - 120px)'});
                     
                 }).catch(err =>
                 {
+
+                    console.log('*** falha no preview', err);
+
+                    // aumenta o panel novamente para exibir a imagem
+                    //this.el.panelDocumentPreview.css({'height':'cal(100% - 120px)'});
 
                     // arquivo não pode ter preview
                     switch (file.type)
@@ -546,23 +559,47 @@ export default class WhatsAppController
         // botão de microphone, que inicia a gravação do audio
         this.el.btnSendMicrophone.on('click', e =>
         {
+
             // exibe o painel que demonstra a gravação
             this.el.recordMicrophone.show();
+
             // ocultar os botões
             this.el.btnSendMicrophone.hide();
-            // inicia a contagem do tempo de gravação
-            this.startRecordMicrophoneTime();
+
+            // inicia a classe que controla o microfone
+            this._microphoneControler = new MicrophoneController()
+
+            // configura a função a ser executada
+            // quando o evento 'ready' for disparado na classe 'microfoneController'
+            this._microphoneControler.on('ready', gravacao=>
+            {
+
+                console.log('*** executou o evento "ready" que identifica que podemos gravar o audio');
+
+                // executa o método para iniciar a gravação
+                this._microphoneControler.startRecorder();
+
+            });
+
+            this._microphoneControler.on('recordtimer', timer =>
+            {
+                this.el.recordMicrophoneTimer.innerHTML = Format.toTime(timer);
+            });
+
         });
 
         this.el.btnCancelMicrophone.on('click', e=>
         {
+            // para a execução do microfone
+            this._microphoneControler.stopRecorder();
             this.closeRecordMicrophone();
         });
 
         this.el.btnFinishMicrophone.on('click', e=>
         {
+            // para a execução do microfone
+            this._microphoneControler.stopRecorder();            
             this.closeRecordMicrophone();
-
         });     
         
         // se teclar enter no campo, sem teclar 'control'
@@ -705,23 +742,6 @@ export default class WhatsAppController
         this.el.btnSendMicrophone.hide();        
         // oculta o painel que grava
         this.el.recordMicrophone.hide();        
-        // fechou a gravação, então para a contagem de tempo
-        clearInterval(this._recordMicrophoneInterval);
-    }
-
-    startRecordMicrophoneTime()
-    {
-
-        // pega a hora do início da gravação do áudio
-        let start = Date.now();
-
-        // cria o processo que é executado a cada 100 milisegundos
-        // para atualizar o timer, exibindo o tempo decorrido
-        this._recordMicrophoneInterval = setInterval(() => 
-        {            
-            this.el.recordMicrophoneTimer.innerHTML = Format.toTime((Date.now() - start));
-
-        }, 100);
     }
 
     closeAllMainPanel()

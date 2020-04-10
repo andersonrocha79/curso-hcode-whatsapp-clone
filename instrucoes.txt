@@ -34,3 +34,12 @@ Ao executar o script start por exemplo, iremos executar o webpack-dev-server, qu
    Hash: b5e302020e33d418c704
    Version: webpack 3.1.0
 
+para exibir trabalhar com pdf foi instalado a biblioteca abaixo:
+npm install pdfjs-dist --save   
+
+diferenças entre var, let ou const
+https://www.alura.com.br/artigos/entenda-diferenca-entre-var-let-e-const-no-javascript
+var      cria a variável com escopo global, que pode ser acessada em qualquer ponto do código
+let      cria a variável com escopo de bloco, que pode ser acessada somente dentro do bloco {} em que foi declarada
+const    cria uma constante que recebe o valor logo que é criada e não pode mais ser alterada, mantendo também um escopo de bloco {}
+
