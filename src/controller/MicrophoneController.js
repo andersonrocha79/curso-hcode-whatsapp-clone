@@ -1,4 +1,4 @@
-import { ClassEvent } from "../util/ClassEvent";
+import ClassEvent from "../util/ClassEvent";
 
 export default class MicrophoneController extends ClassEvent
 {

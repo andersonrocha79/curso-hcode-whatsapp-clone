@@ -39,7 +39,42 @@ npm install pdfjs-dist --save
 
 diferenças entre var, let ou const
 https://www.alura.com.br/artigos/entenda-diferenca-entre-var-let-e-const-no-javascript
-var      cria a variável com escopo global, que pode ser acessada em qualquer ponto do código
+var      cria a variável com escopo global, que pode ser acessada em qualquer ponto do código (é como se tivesse sido criado no topo do código)
 let      cria a variável com escopo de bloco, que pode ser acessada somente dentro do bloco {} em que foi declarada
 const    cria uma constante que recebe o valor logo que é criada e não pode mais ser alterada, mantendo também um escopo de bloco {}
 
+para instalar o pacote para acesso ao firebase na aplicação
+npm install firebase --save
+
+projeto criado no firebase
+nome: whatsapp-clone
+
+script gerado após vincular o firebase a um app webpack
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-app.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+<script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-analytics.js"></script>
+
+<script>
+  // Your web app's Firebase configuration
+  var firebaseConfig = {
+    apiKey: "AIzaSyCThDeH3A-Y60WeU_NSIyfHv_xIoQAp2ZE",
+    authDomain: "whatsapp-clone-a4565.firebaseapp.com",
+    databaseURL: "https://whatsapp-clone-a4565.firebaseio.com",
+    projectId: "whatsapp-clone-a4565",
+    storageBucket: "whatsapp-clone-a4565.appspot.com",
+    messagingSenderId: "1026913628385",
+    appId: "1:1026913628385:web:6532ec181345f75ad407a0",
+    measurementId: "G-5YT1V6GJSC"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  firebase.analytics();
+</script>
+
+função base64
+retorna a string em formato de texto base64, sem caracteres especiais
+btoa("anderson rocha")           >  "YW5kZXJzb24gcm9jaGE="
+atob("YW5kZXJzb24gcm9jaGE=")     >  "anderson rocha"
