@@ -1,4 +1,5 @@
-import Model from "./Model";
+import Model    from "./Model";
+import Firebase from "../util/Firebase";
 
 export default class Chat extends Model
 {

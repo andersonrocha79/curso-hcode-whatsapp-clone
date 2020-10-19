@@ -1,12 +1,15 @@
-import Format                    from './../util/Format'; 
-import CameraController          from './CameraController'; 
-import MicrophoneController      from './MicrophoneController'; 
-import DocumentPreviewController from './DocumentPreviewController'; 
-import Firebase                  from './../util/Firebase';                 // inclusão do firebase no projeto (classe Firebase.js)
-import User                      from '../model/User';
-import Chat                      from '../model/Chat';
-import Message                   from '../model/Message';
-
+import Format                     from './../util/Format'; 
+import CameraController           from './CameraController'; 
+import MicrophoneController       from './MicrophoneController'; 
+import DocumentPreviewController  from './DocumentPreviewController'; 
+import Firebase                   from './../util/Firebase';                 // inclusão do firebase no projeto (classe Firebase.js)
+import User                       from '../model/User';
+import Chat                       from '../model/Chat';
+import Message                    from '../model/Message';
+import Base64                     from '../util/Base64';
+import ContactsController         from './ContactsController';
+import Upload                     from '../util/Upload';
+ 
 export default class WhatsAppController
 {
 
@@ -336,101 +339,116 @@ export default class WhatsAppController
             // para o usuário escolher o arquivo da foto
             this.el.inputProfilePhoto.click();
 
-            // verifica se pressionou o enter no campo
-            // para digitar o nome na tela de perfil
-            this.el.inputNamePanelEditProfile.on('keypress', e=>
+        });
+
+        this.el.inputProfilePhoto.on('change', e=>
+        {
+            if (this.el.inputProfilePhoto.files.length > 0)
             {
-
-                // verifica se teclou 'enter'
-                if (e.key === 'Enter')
+                let file = this.el.inputProfilePhoto.files[0];
+                Upload.send(file, this._user.email).then(snapshot =>
                 {
-                    // não executa o processo padrão
-                    e.preventDefault();
-                    // executa o clique do botão que gravar o nome do perfil do usuário
-                    this.el.btnSavePanelEditProfile.click();
-                }
-
-            })
-
-            // clique no botão que realiza a gravação
-            // do nome do usuário no perfil
-            this.el.btnSavePanelEditProfile.on('click', e=>
-            {
-                console.log('*** gravar o texto digitado:' + this.el.inputNamePanelEditProfile.innerHTML);
-                // desabilita o botão enquanto salva
-                this.el.btnSavePanelEditProfile.disable = true;
-                // altera o nome do usuário no objeto "_user" que representa o usuário atual
-                this._user.name = this.el.inputNamePanelEditProfile.innerHTML;
-                // executa o método "save" da classe DAO, que atualiza o nome no firebase
-                this._user.save().then(() =>
-                {
-                    // habilita o botão após gravação
-                    this.el.btnSavePanelEditProfile.disable = false;
+                    this._user.photo = snapshot.downloadURL;
+                    this._user.save().then( () =>
+                    {
+                        this.el.btnClosePanelEditProfile.click();
+                    });
                 });
-            });
+            }
+        });
 
-            // clique no botão para adicionar um novo contato
-            // neste caso temos um formulário e podemos utilizar o 'formdata'
-            this.el.formPanelAddContact.on('submit', event =>
+        // verifica se pressionou o enter no campo
+        // para digitar o nome na tela de perfil
+        this.el.inputNamePanelEditProfile.on('keypress', e=>
+        {
+
+            // verifica se teclou 'enter'
+            if (e.key === 'Enter')
+            {
+                // não executa o processo padrão
+                e.preventDefault();
+                // executa o clique do botão que gravar o nome do perfil do usuário
+                this.el.btnSavePanelEditProfile.click();
+            }
+
+        });
+
+        // clique no botão que realiza a gravação
+        // do nome do usuário no perfil
+        this.el.btnSavePanelEditProfile.on('click', e=>
+        {
+            console.log('*** gravar o texto digitado:' + this.el.inputNamePanelEditProfile.innerHTML);
+            // desabilita o botão enquanto salva
+            this.el.btnSavePanelEditProfile.disable = true;
+            // altera o nome do usuário no objeto "_user" que representa o usuário atual
+            this._user.name = this.el.inputNamePanelEditProfile.innerHTML;
+            // executa o método "save" da classe DAO, que atualiza o nome no firebase
+            this._user.save().then(() =>
+            {
+                // habilita o botão após gravação
+                this.el.btnSavePanelEditProfile.disable = false;
+            });
+        });
+
+        // clique no botão para adicionar um novo contato
+        // neste caso temos um formulário e podemos utilizar o 'formdata'
+        this.el.formPanelAddContact.on('submit', event =>
+        {
+
+            event.preventDefault();
+
+            console.log('*** clicou no botão adicionar um novo contato');                            
+
+            // armazena os dados do formulário de inclusão de contato
+            let formData = new FormData(this.el.formPanelAddContact);
+
+            // cria um novo contato (usuário) com o email informado
+            let contact = new User(formData.get('email'));
+
+            console.log("*** email informado: ", contact);
+
+            // verifica se existe usuario com este email no firebase
+            contact.on('datachange', data =>
             {
 
-                event.preventDefault();
-
-                console.log('*** clicou no botão adicionar um novo contato');                            
-
-                // armazena os dados do formulário de inclusão de contato
-                let formData = new FormData(this.el.formPanelAddContact);
-
-                // cria um novo contato (usuário) com o email informado
-                let contact = new User(formData.get('email'));
-
-                console.log("*** email informado: ", contact);
-
-                // verifica se existe usuario com este email no firebase
-                contact.on('datachange', data =>
+                // se retornar o nome, indica que existe
+                if (data.name)
                 {
 
-                    // se retornar o nome, indica que existe
-                    if (data.name)
+                    // cria o chat para identificação da conversa
+                    Chat.createIfNotExists(this._user.email, contact.email).then(chat =>
                     {
 
-                        // cria o chat para identificação da conversa
-                        Chat.createIfNotExists(this._user.email, contact.email).then(chat =>
+                        // após criação da conversa
+                        // armazena o id do chat criado no contato ao qual estou conversando
+                        contact.chatId = chat.id;
+
+                        // armazena o id do chat no meu usuário atual
+                        this._user.chatId = chat.id;
+
+                        // inclui o meu usuário como contato do usuário que estou conversando
+                        contact.addContact(this._user);
+                        
+                        // se existe o usuário, adiciona como contato do usuário logado
+                        this._user.addContact(contact).then( () =>
                         {
+                            // após salvar, fecha o painel
+                            this.el.btnClosePanelAddContact.click();
+                            console.info("*** contato adicionado com sucesso");
+                        });                            
 
-                            // após criação da conversa
-                            // armazena o id do chat criado no contato ao qual estou conversando
-                            contact.chatId = chat.id;
+                    });
 
-                            // armazena o id do chat no meu usuário atual
-                            this._user.chatId = chatId;
-
-                            // inclui o meu usuário como contato do usuário que estou conversando
-                            contact.addContact(this._user);
-                            
-                            // se existe o usuário, adiciona como contato do usuário logado
-                            this._user.addContact(contact).then( () =>
-                            {
-                                // após salvar, fecha o painel
-                                this.el.btnClosePanelAddContact.click();
-                                console.info("*** contato adicionado com sucesso");
-                            });                            
-
-                        });
-
-
-                    }
-                    else
-                    {
-                        console.error('usuário não foi encontrado');
-                    }                
-
-                });
-                
+                }
+                else
+                {
+                    console.error('usuário não foi encontrado');
+                }                
 
             });
+            
 
-        });    
+        });
         
         // percorre a lista de 'contatos'
         // que fica no painel esquerdo da tela
@@ -629,7 +647,35 @@ export default class WhatsAppController
         // botão para enviar o documento selecionado
         this.el.btnSendDocument.on('click', e =>
         {
+
             console.log('*** clicou no botão para enviar documento');
+
+            let file   = this.el.inputDocument.files[0];
+            let base64 = this.el.imgPanelDocumentPreview.src;
+
+            if (file.type === 'application/pdf')
+            {
+
+                // converte base64 em arquivo
+                Base64.toFile(base64).then( filePreview =>
+                {
+    
+                    Message.sendDocument(this._contactActive.chatId,
+                                        this._user.email,
+                                        file,
+                                        filePreview,
+                                        this.el.infoPanelDocumentPreview.innerHTML);
+                });
+            }
+            else
+            {
+                Message.sendDocument(this._contactActive.chatId,
+                                     this._user.email,
+                                     file);
+            }
+
+            this.el.btnClosePanelDocumentPreview.click();
+
         });
         
         // botão que aparece no menu 'btnAttach'
@@ -748,16 +794,32 @@ export default class WhatsAppController
         // evento para enviar contato
         this.el.btnAttachContact.on('click', e =>
         {
+
             console.log('*** clicou em attach contact');
-            // exibe a janela modal com a lista de contatos
-            this.el.modalContacts.show();
+
+            // cria o objeto que manipula a lista de contatos
+            this._contactsController = new ContactsController(this.el.modalContacts, this._user);
+
+            // define o evento a ser executado quando o usuário selecionar um contato
+            this._contactsController.on('select', contact =>
+            {
+                // envia a mensagem do contato selecionado
+                Message.sendContact(this._contactActive.chatId,
+                                    this._user.email,
+                                    contact);
+            })
+
+            // abre a lista de contatos para o usuário selecionar
+            this._contactsController.open();
+
+
         });           
 
         // botão para fechar o modal 'contacts'
         this.el.btnCloseModalContacts.on('click', e=>
         {
             // oculta a janela modal
-            this.el.modalContacts.hide();
+            this._contactsController.close();            
         });
 
         // botão de microphone, que inicia a gravação do audio
@@ -801,6 +863,16 @@ export default class WhatsAppController
 
         this.el.btnFinishMicrophone.on('click', e=>
         {
+            this._microphoneControler.on('recorded', (file, metadata) =>
+            {
+                Message.sendAudio(
+                    this._contactActive.chatId,
+                    this._user.email,
+                    file,
+                    metadata,
+                    this._user.photo
+                );
+            });
             // para a execução do microfone
             this._microphoneControler.stopRecorder();            
             this.closeRecordMicrophone();
@@ -1157,6 +1229,8 @@ export default class WhatsAppController
                         // define se a mensagem é minha ou de outro usuário
                         let me = (data.from === this._user.email);
 
+                        // retorna o view da mensagem
+                        let view = message.getViewElement(me);
 
                         if (!this.el.panelMessagesContainer.querySelector('#_' + data.id))
                         {
@@ -1168,18 +1242,74 @@ export default class WhatsAppController
                                 doc.ref.set({status: 'read'}, {merge:true});
                             }
 
-                            // retorna o view da mensagem
-                            let view = message.getViewElement(me);
-
                             // inclui a mensagem na tela
                             this.el.panelMessagesContainer.appendChild(view);
 
                         }
-                        else if (me)
+                        else
+                        {
+
+                            // busca o pai do elemento atual
+                            // atualiza como 'elemento', para que não perca os eventos
+                            // se alterar via innerhtml, que é texto, os eventos aplicados se perdem
+                            // anterior: this.el.panelMessagesContainer.querySelector('#_' + data.id).innerHTML = view.innerHTML;
+                            let parent = this.el.panelMessagesContainer.querySelector('#_' + data.id).parentNode;
+
+                            // troca o elemento filho, sem apagar os eventos programados                            
+                            parent.replaceChild(view, this.el.panelMessagesContainer.querySelector('#_' + data.id));
+
+                        }
+                                                
+                        
+                        // verifica se a mensagem existe e se é minha
+                        if (this.el.panelMessagesContainer.querySelector('#_' + data.id) && me)
                         {
                             // se a mensagem já existir, e for minha, atualiza, para mostrar se já foi enviada
                             let msgEl = this.el.panelMessagesContainer.querySelector('#_' + data.id);
                             msgEl.querySelector('.message-status').innerHTML = message.getStatusViewElement().outerHTML;
+                        }
+
+                        // verifica se a mensagem é do tipo 'contato'
+                        if (message.type === 'contact')
+                        {
+
+                            // se for, configura o clique na mensagem
+                            view.querySelector('.btn-message-send').on('click', e=>
+                            {
+            
+                                // cria o chat para identificação da conversa
+                                Chat.createIfNotExists(this._user.email, message.content.email).then(chat =>
+                                {
+
+                                    // busca o contato enviado na mensagem
+                                    let contact = new User(message.content.email);
+
+                                    // aguarda a resposta do servidor
+                                    contact.on('datachange', data =>
+                                    {
+        
+                                        // após criação da conversa
+                                        // armazena o id do chat criado no contato ao qual estou conversando
+                                        contact.chatId = chat.id;
+
+                                        // adiciona este novo contato ao usuário atual
+                                        this._user.addContact(contact);
+            
+                                        // armazena o id do chat no meu usuário atual
+                                        this._user.chatId = chat.Id;
+            
+                                        // inclui o meu usuário como contato do usuário que estou conversando
+                                        contact.addContact(this._user);
+                                         
+                                        // já abre a janela para conversa com o usuário enviado na mensagem
+                                        this.setActiveChat(contact)
+
+                                    });                          
+        
+                                });
+    
+                            });
+
                         }
 
                     });

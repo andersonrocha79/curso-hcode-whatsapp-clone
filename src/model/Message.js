@@ -1,14 +1,15 @@
 
-import Model    from "./Model";
-import Firebase from "../util/Firebase";
-import Format   from "../util/Format";
+import Model     from "./Model";
+import Firebase  from "../util/Firebase";
+import Format    from "../util/Format";
+import Upload    from "../util/Upload";
 
-export class Message extends Model
+export default class Message extends Model
 {
 
     constructor()
     {
-
+        super();
     }
 
     get id()
@@ -61,6 +62,86 @@ export class Message extends Model
         return this._data.status = value;
     }
 
+    get preview()
+    {
+        return this._data.preview;
+    }
+
+    set preview(value)
+    {
+        return this._data.preview = value;
+    }    
+
+    get info()
+    {
+        return this._data.info;
+    }
+
+    set info(value)
+    {
+        return this._data.info = value;
+    }    
+
+    get fileType()
+    {
+        return this._data.fileType;
+    }
+
+    set fileType(value)
+    {
+        return this._data.fileType = value;
+    }     
+
+    get filename()
+    {
+        return this._data.filename;
+    }
+
+    set filename(value)
+    {
+        return this._data.filename = value;
+    }     
+
+    get size()
+    {
+        return this._data.size;
+    }
+
+    set size(value)
+    {
+        return this._data.size = value;
+    }   
+
+    get from()
+    {
+        return this._data.from;
+    }
+
+    set from(value)
+    {
+        return this._data.from = value;
+    }   
+
+    get photo()
+    {
+        return this._data.photo;
+    }
+
+    set photo(value)
+    {
+        return this._data.photo = value;
+    }       
+
+    get duration()
+    {
+        return this._data.duration;
+    }
+
+    set duration(value)
+    {
+        return this._data.duration = value;
+    }       
+
     getViewElement(me = true)
     {
 
@@ -68,12 +149,15 @@ export class Message extends Model
         // mensagem existente (this.type)
 
         let div = document.createElement('div');
+        
+        div.id        =  `_${this.id}`;
         div.className = 'message';
 
         switch (this.type) 
         {
 
             case 'contact':
+
                 div.innerHTML = `
                 
                 <div class="_3_7SH kNKwo tail">
@@ -97,7 +181,7 @@ export class Message extends Model
                                 </div>
                             </div>
                             <div class="_1lC8v">
-                                <div dir="ltr" class="_3gkvk selectable-text invisible-space copyable-text">Nome do Contato Anexado</div>
+                                <div dir="ltr" class="_3gkvk selectable-text invisible-space copyable-text">${this.content.name}</div>
                             </div>
                             <div class="_3a5-b">
                                 <div class="_1DZAH" role="button">
@@ -113,6 +197,15 @@ export class Message extends Model
                 </div>
                 
                 `;
+
+                if (this.content.photo)
+                {
+                    let img = div.querySelector('.photo-contact-sended');
+                    img.src = this.content.photo;
+                    img.show();
+                }
+
+
             break;
 
             case 'image':
@@ -178,13 +271,13 @@ export class Message extends Model
                 <div class="_3_7SH _1ZPgd">
                     <div class="_1fnMt _2CORf">
                         <a class="_1vKRe" href="#">
-                            <div class="_2jTyA" style="background-image: url()"></div>
+                            <div class="_2jTyA" style="background-image: url(${this.preview})"></div>
                             <div class="_12xX7">
                                 <div class="_3eW69">
                                     <div class="JdzFp message-file-icon icon-doc-pdf"></div>
                                 </div>
                                 <div class="nxILt">
-                                    <span dir="auto" class="message-filename">Arquivo.pdf</span>
+                                    <span dir="auto" class="message-filename">${this.filename}</span>
                                 </div>
                                 <div class="_17viz">
                                     <span data-icon="audio-download" class="message-file-download">
@@ -202,9 +295,9 @@ export class Message extends Model
                             </div>
                         </a>
                         <div class="_3cMIj">
-                            <span class="PyPig message-file-info">32 páginas</span>
-                            <span class="PyPig message-file-type">PDF</span>
-                            <span class="PyPig message-file-size">4 MB</span>
+                            <span class="PyPig message-file-info">${this.info}</span>
+                            <span class="PyPig message-file-type">${this.fileType}</span>
+                            <span class="PyPig message-file-size">${this.size}</span>
                         </div>
                         <div class="_3Lj_s">
                             <div class="_1DZAH" role="button">
@@ -215,6 +308,13 @@ export class Message extends Model
                 </div>
                 
                 `;
+
+                // evento ao clicar na div do documento
+                div.on('click', e =>
+                {
+                    window.open(this.content);
+                });
+
             break;
 
             case 'audio':
@@ -225,17 +325,17 @@ export class Message extends Model
                             <div class="_2cfqh">
                                 <div class="_1QMEq _1kZiz fS1bA">
                                     <div class="E5U9C">
-                                        <svg class="_1UDDE" width="34" height="34" viewBox="0 0 43 43">
+                                        <svg class="_1UDDE audio-load" width="34" height="34" viewBox="0 0 43 43">
                                             <circle class="_3GbTq _37WZ9" cx="21.5" cy="21.5" r="20" fill="none" stroke-width="3"></circle>
                                         </svg>
-                                        <button class="_2pQE3" class="btn-audio-play" style="display:none">
+                                        <button class="_2pQE3 audio-play" class="btn-audio-play" style="display:none">
                                             <span data-icon="audio-play">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34 34" width="34" height="34">
                                                     <path fill="#263238" fill-opacity=".5" d="M8.5 8.7c0-1.7 1.2-2.4 2.6-1.5l14.4 8.3c1.4.8 1.4 2.2 0 3l-14.4 8.3c-1.4.8-2.6.2-2.6-1.5V8.7z"></path>
                                                 </svg>
                                             </span>
                                         </button>
-                                        <button class="_2pQE3" class="btn-audio-pause">
+                                        <button class="_2pQE3 audio-pause" class="btn-audio-pause" style="display:none">
                                             <span data-icon="audio-pause">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34 34" width="34" height="34">
                                                     <path fill="#263238" fill-opacity=".5" d="M9.2 25c0 .5.4 1 .9 1h3.6c.5 0 .9-.4.9-1V9c0-.5-.4-.9-.9-.9h-3.6c-.4-.1-.9.3-.9.9v16zm11-17c-.5 0-1 .4-1 .9V25c0 .5.4 1 1 1h3.6c.5 0 1-.4 1-1V9c0-.5-.4-.9-1-.9 0-.1-3.6-.1-3.6-.1z"></path>
@@ -244,11 +344,11 @@ export class Message extends Model
                                         </button>
                                     </div>
                                     <div class="_1_Gu6">
-                                        <div class="message-audio-duration">0:05</div>
+                                        <div class="message-audio-duration">0:00</div>
                                         <div class="_1sLSi">
                                             <span class="nDKsM" style="width: 0%;"></span>
                                             <input type="range" min="0" max="100" class="_3geJ8" value="0">
-                                            <audio src="#" preload="auto"></audio>
+                                            <audio src="${this.content}" preload="auto"></audio>
                                         </div>
                                     </div>
                                 </div>
@@ -295,11 +395,88 @@ export class Message extends Model
                     </div>
                 </div>               
                 `;
+
+                if (this.photo)
+                {
+                    let img = div.querySelector('.message-photo');
+                    img.src = this.photo;
+                    img.show();
+                }
+                
+                let audioEl       = div.querySelector('audio');
+                let loadEl        = div.querySelector('.audio-load');
+                let btnPlay       = div.querySelector('.audio-play');
+                let btnPause      = div.querySelector('.audio-pause');
+                let inputRange    = div.querySelector('[type=range]');
+                let audioDuration = div.querySelector('.message-audio-duration');
+
+                // evento que informa quando o audio está pronto para tocar (carregado)
+                audioEl.onloadeddata = e =>
+                {
+                    loadEl.hide();
+                    btnPlay.show();
+                };
+
+                // clicou no botão para tocar o audio
+                audioEl.onplay = e =>
+                {
+                    btnPlay.hide();
+                    btnPause.show();
+                };
+
+                // clicou no botão para pausar o audio
+                audioEl.onpause = e =>
+                {
+                    audioDuration.innerHTML = Format.toTime(this.duration*1000);
+                    btnPlay.show();
+                    btnPause.hide();
+                };   
+
+                audioEl.ontimeupdate = e =>
+                {
+                    btnPlay.hide();
+                    btnPause.hide();
+                    audioDuration.innerHTML = Format.toTime(audioEl.currentTime*1000);
+                    inputRange.value        = (audioEl.currentTime*100) / this.duration;
+
+                    if (audioEl.paused)
+                    {
+                        btnPlay.show();
+                    }
+                    else
+                    {
+                        btnPause.show();
+                    }
+                };
+                                
+                // quando termina de tocar o audio
+                audioEl.onended = e =>
+                {
+                    audioEl.currentTime = 0;
+                };
+
+                btnPlay.on('click', e=>
+                {
+                    audioEl.play();
+                });
+
+                btnPause.on('click', e=>
+                {
+                    audioEl.pause();
+                });
+
+                // calcula o tempo atual do áudio
+                inputRange.on('change', e=>
+                {
+                    audioEl.currentTime = (inputRange.value * this.duration) / 100;
+                });
+                
+
             break;
            
             default:
                 div.innerHTML = `   
-                <div class="font-style _3DFk6tail" id="_${this.id}">
+                <div class="font-style _3DFk6tail">
                     <span class="tail-container"></span>
                     <span class="tail-container highlight"></span>
                     <div class="Tkt2p">
@@ -360,11 +537,14 @@ export class Message extends Model
                 // se conseeguir enviar
                 // já faz a alteração da mensagem para 'enviada'
                 // altera apenas o campo 'status'
-                result.parent.doc(result.id).set({status:'sent'}, {merge: true})
+
+                let docRef = result.parent.doc(result.id);
+
+                docRef.set({status:'sent'}, {merge: true})
                       .then( () => 
                       {
                           // executa o método 's' indicando que houve sucesso no envio
-                          s();
+                          s(docRef);
                       });
                 
             });            
@@ -437,36 +617,117 @@ export class Message extends Model
     static sendImage(chatId, from, file)
     {
 
-        return new Promise((s, f) =>
+        return new Promise( (s, f) =>
         {
 
-            // monta a referencia para armazenar o arquivo no firestore
-            // hd / email / data+nomearquivo 
-            let uploadTask = Firebase.hd().ref(from).child(Data.now() + "_" + file.name).put(file);
+            Message.upload(file, from).then(snapshot =>
+            {
 
-            uploadTask.on('state_changed', 
-            e =>
-            {
-                // exibir progresso
-                console.info('upload', e);
-            },
-            err =>
-            {
-                // erro
-                console.error(err)
-            },
-            () =>
-            {
-                // sucesso
-                Message.send(chatId, from, 'image', uploadTask.snapshot.downloadURL).then(() =>
+                Message.send(chatId, from, 'image', snapshot.downloadURL).then(() =>
                 {
                     s();
-                });
-            });        
+                });                
+            });
 
         });
-
         
+    }
+
+    static upload(file, from)
+    {
+
+        return Upload.send(file, from);     
+
+    }
+
+    static sendDocument(chatId, from, file, filePreview, info)
+    {
+
+        Message.send(chatId, from, 'document').then(msgRef =>
+        {
+
+            Message.upload(file, from).then(snapshot =>
+            {
+
+                // armazena a url do arquivo enviado
+                let downloadFile = snapshot.downloadURL;
+
+                // verifica se o filepreview foi passado (só existe se for pdf)
+                if (filePreview)
+                {
+
+                    Message.upload(filePreview, from).then(snapshot2 =>
+                    {
+        
+                        // armazena a url do arquivo enviado
+                        let downloadPreview = snapshot2.downloadURL;
+        
+                        // atualiza a mensagem já enviada
+                        msgRef.set(
+                        {
+                            content: downloadFile,
+                            filename: file.name,
+                            size: file.size,
+                            fileType: file.type,
+                            status: 'sent'
+                        }, {merge: true});
+                                        
+                    });                  
+        
+                }
+                else                
+                {
+
+                    // atualiza a mensagem já enviada
+                    msgRef.set(
+                    {
+                        content: downloadFile,
+                        preview: downloadPreview,
+                        filename: file.name,
+                        size: file.size,
+                        fileType: file.type,
+                        status: 'sent',
+                        info: info
+                    }, {merge: true});                    
+                }
+                                
+            });            
+                    
+        });
+       
+    }
+
+    static sendContact(chatId, from, contact)
+    {
+
+        return Message.send(chatId, from, 'contact', contact);
+
+    }
+
+    static sendAudio(chatId, from, file, metadata, photo)
+    {
+
+        return Message.send(chatId, from, 'audio', '').then(msgRef => 
+        {
+            Message.upload(file, from).then(snapshot =>
+            {
+ 
+                let downloadFile = snapshot.downloadURL;               
+
+                // atualiza a mensagem já enviada
+                msgRef.set(
+                {
+                    content: downloadFile,
+                    size: file.size,
+                    fileType: file.type,
+                    status: 'sent',
+                    photo: photo,
+                    duration: metadata.duration
+                }, {merge: true});
+    
+            });
+        });
+
     }
 
 }

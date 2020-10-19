@@ -114,11 +114,37 @@ export default class MicrophoneController extends ClassEvent
                 // precisamos criar um 'blob' para armazenar o conteúdo do áudio em bytes
                 // ao criar o blob passamos os dados existentes no array 'recordedchunks' e qual o tipo de dados existente
                 let blob = new Blob(this._recordedChunks, {type: this._mimetype});
+
                 // define o nome do arquivo
                 let filename = `rec${Date.now()}.webm`;
-                // cria o arquivo
-                let file = new File([blob], filename, {type: this._mimeType, lastModified: Date.now()});
+               
+                let audioContext = new AudioContext();
+
+                let reader = new FileReader();
+                reader.onload = e =>
+                {
+
+                    audioContext.decodeAudioData(reader.result).then(decode =>
+                    {
+
+                        // cria o arquivo
+                        let file = new File([blob], filename, 
+                        {
+                            type: this._mimeType, 
+                            lastModified: Date.now()
+                        });
+
+                        this.trigger('recorded', file, decode);
+        
+                    });
+
+                };
+
+                reader.readAsArrayBuffer(blob);
+                
                 console.log('*** arquivo de áudio pronto para envio > ', file);
+
+
                 // executa o áudio para testar
                 /*
                 // este trecho de código abre e executa o arquivo de áudio
